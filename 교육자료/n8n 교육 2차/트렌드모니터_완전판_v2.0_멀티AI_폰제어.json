@@ -1,0 +1,945 @@
+{
+  "name": "트렌드모니터_완전판_v2.0_멀티AI_폰제어",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "start-monitoring",
+        "options": {}
+      },
+      "id": "e356af68-d465-4982-88bf-cc88389791c7",
+      "name": "폰에서_실행_Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1296,
+        -32
+      ],
+      "webhookId": "phone-control",
+      "notes": "폰에서 호출하는 Webhook\n\nURL 파라미터:\n- industry_name: 분야명\n- keywords: 키워드 (쉼표구분)\n- ai_model: claude/gpt4/gemini\n- delivery: kakao/email/both"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "industry_name",
+              "value": "={{ $json.body.industry_name || $json.query.industry_name || 'AI스타트업' }}",
+              "type": "string"
+            },
+            {
+              "id": "a2",
+              "name": "keywords",
+              "value": "={{ $json.body.keywords || $json.query.keywords || 'AI,GPT,Claude,투자' }}",
+              "type": "string"
+            },
+            {
+              "id": "a3",
+              "name": "ai_model",
+              "value": "={{ $json.body.ai_model || $json.query.ai_model || 'claude' }}",
+              "type": "string"
+            },
+            {
+              "id": "a4",
+              "name": "delivery_method",
+              "value": "={{ $json.body.delivery || $json.query.delivery || 'kakao' }}",
+              "type": "string"
+            },
+            {
+              "id": "a5",
+              "name": "execution_id",
+              "value": "={{ $execution.id }}",
+              "type": "string"
+            },
+            {
+              "id": "a6",
+              "name": "started_at",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "483c4669-273a-4d78-9ec7-b709e6ba7a16",
+      "name": "사용자입력_파싱",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1072,
+        -32
+      ],
+      "notes": "Webhook으로 받은 파라미터 정리"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 동적 프리셋 생성 + RSS 자동 매칭\n// v1.117.2\n\nconst userInput = $input.first().json;\n\n// RSS 피드 데이터베이스\nconst RSS_DATABASE = {\n  tech: [\n    { url: \"https://techcrunch.com/feed/\", name: \"TechCrunch\" },\n    { url: \"https://platum.kr/feed/\", name: \"Platum\" },\n    { url: \"https://www.venturebeat.com/feed/\", name: \"VentureBeat\" }\n  ],\n  fashion: [\n    { url: \"https://www.fi.co.kr/rss/allArticle.xml\", name: \"패션인사이트\" },\n    { url: \"https://www.apparelnews.co.kr/rss/allArticle.xml\", name: \"어패럴뉴스\" },\n    { url: \"https://www.beautynury.com/rss/allArticle.xml\", name: \"뷰티누리\" }\n  ],\n  fintech: [\n    { url: \"http://www.fntimes.com/rss/S1N1.xml\", name: \"한국금융신문\" },\n    { url: \"https://www.digitaltoday.co.kr/rss/S1N13.xml\", name: \"디지털투데이\" },\n    { url: \"https://www.coindesk.com/arc/outboundfeeds/rss/\", name: \"CoinDesk\" }\n  ],\n  crypto: [\n    { url: \"https://www.coindesk.com/arc/outboundfeeds/rss/\", name: \"CoinDesk\" },\n    { url: \"https://cointelegraph.com/rss\", name: \"Cointelegraph\" },\n    { url: \"http://www.fntimes.com/rss/S1N1.xml\", name: \"한국금융신문\" }\n  ],\n  manufacturing: [\n    { url: \"http://www.kidd.co.kr/rss/allArticle.xml\", name: \"산업일보\" },\n    { url: \"https://www.etnews.com/rss\", name: \"전자신문\" },\n    { url: \"http://www.mfgnews.co.kr/rss/allArticle.xml\", name: \"매일경제제조\" }\n  ],\n  healthcare: [\n    { url: \"https://www.medigatenews.com/rss/allArticle.xml\", name: \"메디게이트\" },\n    { url: \"https://www.bosa.co.kr/rss/allArticle.xml\", name: \"보건산업\" },\n    { url: \"http://www.pharmnews.com/rss/allArticle.xml\", name: \"팜뉴스\" }\n  ],\n  general: [\n    { url: \"https://news.google.com/rss\", name: \"Google News\" },\n    { url: \"https://www.chosun.com/arc/outboundfeeds/rss/\", name: \"조선일보\" },\n    { url: \"https://www.hankyung.com/feed/\", name: \"한국경제\" }\n  ]\n};\n\n// 키워드 기반 카테고리 자동 감지\nfunction detectCategory(keywords) {\n  const kw = keywords.toLowerCase();\n  \n  if (kw.includes('ai') || kw.includes('스타트업') || kw.includes('테크') || kw.includes('gpt')) {\n    return 'tech';\n  }\n  if (kw.includes('패션') || kw.includes('뷰티') || kw.includes('명품') || kw.includes('샤넬')) {\n    return 'fashion';\n  }\n  if (kw.includes('코인') || kw.includes('블록체인') || kw.includes('암호화폐') || kw.includes('비트코인')) {\n    return 'crypto';\n  }\n  if (kw.includes('금융') || kw.includes('핀테크') || kw.includes('페이') || kw.includes('토스')) {\n    return 'fintech';\n  }\n  if (kw.includes('제조') || kw.includes('공장') || kw.includes('반도체') || kw.includes('배터리')) {\n    return 'manufacturing';\n  }\n  if (kw.includes('의료') || kw.includes('헬스') || kw.includes('바이오') || kw.includes('병원')) {\n    return 'healthcare';\n  }\n  \n  return 'general';\n}\n\nconst category = detectCategory(userInput.keywords);\nconst keywordsArray = userInput.keywords.split(',').map(k => k.trim()).filter(k => k.length > 0);\n\nconst dynamicPreset = {\n  industry: userInput.industry_name,\n  keywords: keywordsArray,\n  rss_feeds: RSS_DATABASE[category] || RSS_DATABASE.general,\n  news_api_query: keywordsArray.join(' OR '),\n  news_api_language: 'ko',\n  urgent_keywords: keywordsArray.slice(0, 3),\n  detected_category: category,\n  user_input: userInput,\n  created_at: new Date().toISOString()\n};\n\nconsole.log(`동적 프리셋 생성: ${userInput.industry_name}, 카테고리: ${category}`);\n\nreturn [{ json: dynamicPreset }];"
+      },
+      "id": "d4ce51aa-c5b7-4cc4-a8cb-00d37851fe21",
+      "name": "동적_프리셋_생성",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -864,
+        -32
+      ],
+      "notes": "키워드 기반 RSS 자동 매칭"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.rss_feeds[0].url }}",
+        "options": {}
+      },
+      "id": "159cdace-3989-4d7f-a120-5167af7d9cd7",
+      "name": "RSS수집_1",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        -640,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.rss_feeds[1].url }}",
+        "options": {}
+      },
+      "id": "1ab150a5-8d43-44fb-a96a-ff853e81ddfe",
+      "name": "RSS수집_2",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        -640,
+        -112
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.rss_feeds[2].url }}",
+        "options": {}
+      },
+      "id": "098d9253-d8dd-47c9-b6f9-c031fb479244",
+      "name": "RSS수집_3",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        -640,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://newsapi.org/v2/everything",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{ $json.news_api_query }}"
+            },
+            {
+              "name": "language",
+              "value": "ko"
+            },
+            {
+              "name": "sortBy",
+              "value": "publishedAt"
+            },
+            {
+              "name": "pageSize",
+              "value": "20"
+            },
+            {
+              "name": "from",
+              "value": "={{ $now.minus({days: 1}).toFormat('yyyy-MM-dd') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6d7912db-ce0a-46ee-984e-54d8d91e4f95",
+      "name": "NewsAPI_수집",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -640,
+        144
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ndw6cfMYFLSb7oOe",
+          "name": "Header Auth account"
+        }
+      },
+      "notes": "Credentials 설정:\nName: X-Api-Key\nValue: (발급받은 NewsAPI Key)"
+    },
+    {
+      "parameters": {
+        "jsCode": "const allItems = $input.all();\nreturn allItems;"
+      },
+      "id": "813f8a54-8b5f-4ef6-aca3-117acc5db3bd",
+      "name": "소스_태깅",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -368,
+        -32
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 중복 제거 + 날짜 필터링\nconst items = $input.all();\nconst seenUrls = new Set();\nconst uniqueItems = [];\n\nconst sevenDaysAgo = new Date();\nsevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);\n\nfor (const item of items) {\n  const url = item.json.link;\n  \n  if (!seenUrls.has(url)) {\n    seenUrls.add(url);\n    \n    const pubDate = new Date(item.json.pubDate);\n    if (pubDate >= sevenDaysAgo && !isNaN(pubDate.getTime())) {\n      uniqueItems.push(item);\n    }\n  }\n}\n\nuniqueItems.sort((a, b) => new Date(b.json.pubDate) - new Date(a.json.pubDate));\n\nconsole.log(`중복 제거: ${items.length}건 → ${uniqueItems.length}건`);\nreturn uniqueItems;"
+      },
+      "id": "68c11c1c-5b79-40ca-8e7a-148df7536883",
+      "name": "중복_제거",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -160,
+        -32
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 키워드 필터링\nconst items = $input.all();\nconst preset = $('동적_프리셋_생성').item.json;\nconst keywords = preset.keywords || [];\nconst urgentKeywords = preset.urgent_keywords || [];\n\nconst filtered = [];\n\nfor (const item of items) {\n  const title = (item.json.title || '').toLowerCase();\n  const content = (item.json.content || '').toLowerCase();\n  const fullText = `${title} ${content}`;\n  \n  const matchedKeywords = keywords.filter(keyword => \n    fullText.includes(keyword.toLowerCase())\n  );\n  \n  const matchedUrgent = urgentKeywords.filter(keyword =>\n    fullText.includes(keyword.toLowerCase())\n  );\n  \n  if (matchedKeywords.length > 0) {\n    filtered.push({\n      json: {\n        ...item.json,\n        matched_keywords: matchedKeywords,\n        is_urgent: matchedUrgent.length > 0,\n        keyword_count: matchedKeywords.length\n      }\n    });\n  }\n}\n\nconsole.log(`키워드 필터링: ${items.length}건 → ${filtered.length}건`);\nreturn filtered;"
+      },
+      "id": "814207c2-27d0-48c6-a8fc-f543129dc737",
+      "name": "키워드_필터링",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        48,
+        -32
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 감정 분석\nconst items = $input.all();\n\nconst positiveWords = ['성장', '상승', '증가', '성공', '혁신', '획기적', 'growth', 'success', 'innovation'];\nconst negativeWords = ['하락', '감소', '실패', '위기', '논란', '문제', 'decline', 'failure', 'crisis'];\n\nconst analyzed = items.map(item => {\n  const text = `${item.json.title || ''} ${item.json.content || ''}`.toLowerCase();\n  \n  let positiveScore = 0;\n  let negativeScore = 0;\n  \n  for (const word of positiveWords) {\n    const regex = new RegExp(word.toLowerCase(), 'g');\n    const matches = text.match(regex);\n    if (matches) positiveScore += matches.length;\n  }\n  \n  for (const word of negativeWords) {\n    const regex = new RegExp(word.toLowerCase(), 'g');\n    const matches = text.match(regex);\n    if (matches) negativeScore += matches.length;\n  }\n  \n  let sentiment = '중립';\n  if (positiveScore > negativeScore) sentiment = '긍정';\n  else if (negativeScore > positiveScore) sentiment = '부정';\n  \n  return {\n    json: {\n      ...item.json,\n      sentiment: sentiment,\n      positive_count: positiveScore,\n      negative_count: negativeScore\n    }\n  };\n});\n\nreturn analyzed;"
+      },
+      "id": "55902ba3-168b-4cea-9dc2-b51902676549",
+      "name": "감정_분석",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        256,
+        -32
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 중요도 판단\nconst items = $input.all();\nconst preset = $('동적_프리셋_생성').item.json;\n\nconst scored = items.map(item => {\n  let score = 0;\n  const reasons = [];\n  \n  if (item.json.is_urgent) {\n    score += 30;\n    reasons.push('긴급');\n  }\n  \n  const keywordBonus = Math.min(item.json.keyword_count * 5, 20);\n  score += keywordBonus;\n  \n  if (item.json.positive_count >= 3 || item.json.negative_count >= 3) {\n    score += 15;\n    reasons.push(`강한 ${item.json.sentiment}`);\n  }\n  \n  const hoursSince = (Date.now() - new Date(item.json.pubDate)) / (1000 * 60 * 60);\n  if (hoursSince < 24) {\n    score += 5;\n    reasons.push('최신');\n  }\n  \n  let importance = '낮음';\n  if (score >= 50) importance = '높음';\n  else if (score >= 30) importance = '보통';\n  \n  return {\n    json: {\n      ...item.json,\n      importance,\n      importance_score: score\n    }\n  };\n});\n\nscored.sort((a, b) => b.json.importance_score - a.json.importance_score);\nreturn scored;"
+      },
+      "id": "9328d310-5271-49fd-8875-332d6422a9a0",
+      "name": "중요도_판단",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        -32
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "s1",
+              "name": "timestamp",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "s2",
+              "name": "date",
+              "value": "={{ $now.toFormat('yyyy-MM-dd') }}",
+              "type": "string"
+            },
+            {
+              "id": "s3",
+              "name": "industry",
+              "value": "={{ $('동적_프리셋_생성').item.json.industry }}",
+              "type": "string"
+            },
+            {
+              "id": "s4",
+              "name": "source",
+              "value": "={{ $json.source }}",
+              "type": "string"
+            },
+            {
+              "id": "s5",
+              "name": "title",
+              "value": "={{ $json.title.substring(0, 200) }}",
+              "type": "string"
+            },
+            {
+              "id": "s6",
+              "name": "url",
+              "value": "={{ $json.link }}",
+              "type": "string"
+            },
+            {
+              "id": "s7",
+              "name": "keywords",
+              "value": "={{ $json.matched_keywords.join(', ') }}",
+              "type": "string"
+            },
+            {
+              "id": "s8",
+              "name": "sentiment",
+              "value": "={{ $json.sentiment }}",
+              "type": "string"
+            },
+            {
+              "id": "s9",
+              "name": "importance",
+              "value": "={{ $json.importance }}",
+              "type": "string"
+            },
+            {
+              "id": "s10",
+              "name": "is_urgent",
+              "value": "={{ $json.is_urgent ? 'TRUE' : 'FALSE' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2e4e407b-fc25-4dd0-b525-bbab02ceee46",
+      "name": "Sheets용_구조화",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        688,
+        -32
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1VSNMCczgG7j6i0KeWj7JSHOOHt81p0BzSZYSOznHFG4/edit?pli=1&gid=0#gid=0",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "원본데이터",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1VSNMCczgG7j6i0KeWj7JSHOOHt81p0BzSZYSOznHFG4/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "fddc628d-a9ad-4dfe-98ca-dab1301a4e69",
+      "name": "Google_Sheets_저장",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -1216,
+        416
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "4qwkEWnRGPwHS4yn",
+          "name": "Google Sheets account"
+        }
+      },
+      "notes": "스프레드시트 ID 입력 필요"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 요약 통계 생성\nconst items = $input.all();\nconst userConfig = $('사용자입력_파싱').item.json;\nconst preset = $('동적_프리셋_생성').item.json;\n\nconst stats = {\n  total_count: items.length,\n  urgent_count: items.filter(i => i.json.is_urgent === 'TRUE').length,\n  high_importance: items.filter(i => i.json.importance === '높음').length,\n  positive_count: items.filter(i => i.json.sentiment === '긍정').length,\n  negative_count: items.filter(i => i.json.sentiment === '부정').length,\n  neutral_count: items.filter(i => i.json.sentiment === '중립').length\n};\n\nconst top5 = items\n  .sort((a, b) => (b.json.importance_score || 0) - (a.json.importance_score || 0))\n  .slice(0, 5)\n  .map(item => ({\n    title: item.json.title,\n    url: item.json.url,\n    importance: item.json.importance\n  }));\n\nreturn [{\n  json: {\n    industry: preset.industry,\n    execution_id: userConfig.execution_id,\n    started_at: userConfig.started_at,\n    stats: stats,\n    top_5_news: top5,\n    all_items: items\n  }\n}];"
+      },
+      "id": "f3cb20f8-6d10-4d3d-9363-55d1420637a0",
+      "name": "요약통계_생성",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1024,
+        416
+      ],
+      "notes": "통계 계산"
+    },
+    {
+      "parameters": {
+        "jsCode": "// AI 프롬프트 준비\nconst data = $input.first().json;\nconst userConfig = $('사용자입력_파싱').item.json;\n\nconst top10News = data.all_items\n  .slice(0, 10)\n  .map(item => `[${item.json.source}] ${item.json.title}`)\n  .join('\\n');\n\nconst prompt = `당신은 ${data.industry} 분야의 트렌드 분석 전문가입니다.\n\n## 통계 요약\n- 총 ${data.stats.total_count}건 수집\n- 긴급: ${data.stats.urgent_count}건\n- 높은 중요도: ${data.stats.high_importance}건\n- 감정: 긍정 ${data.stats.positive_count}건, 부정 ${data.stats.negative_count}건, 중립 ${data.stats.neutral_count}건\n\n## 주요 뉴스 TOP 10\n${top10News}\n\n---\n\n다음 형식으로 분석해주세요:\n\n1. 핵심 트렌드 (3줄 요약)\n2. 주요 이슈 TOP 3 (각각 1문장)\n3. 긍정/부정 신호 해석\n4. 향후 주목할 키워드 5개\n5. 액션 아이템 (추천 대응 방안 3가지)`;\n\nreturn [{\n  json: {\n    prompt: prompt,\n    ai_model: userConfig.ai_model,\n    stats: data.stats,\n    industry: data.industry,\n    top_news: top10News\n  }\n}];"
+      },
+      "id": "d8141f5a-f2be-4c84-b4c5-37f3d51e3e66",
+      "name": "AI_프롬프트_준비",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -848,
+        416
+      ],
+      "notes": "프롬프트 생성"
+    },
+    {
+      "parameters": {
+        "mode": "expression",
+        "output": "={{ $json.ai_model }}"
+      },
+      "id": "ce0d22b3-f582-4297-9f39-074ec8e05dee",
+      "name": "AI모델_분기",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -656,
+        384
+      ],
+      "notes": "AI 모델 선택"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  \"model\": \"claude-sonnet-4-20250514\",\n  \"max_tokens\": 2000,\n  \"messages\": [{\n    \"role\": \"user\",\n    \"content\": $json.prompt\n  }]\n} }}",
+        "options": {}
+      },
+      "id": "cd4d0354-8e8f-4a69-8959-130a29ec5e65",
+      "name": "Claude_API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -432,
+        560
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ndw6cfMYFLSb7oOe",
+          "name": "Header Auth account"
+        }
+      },
+      "notes": "Credentials:\nHeader: x-api-key\nValue: sk-ant-xxx..."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  \"model\": \"gpt-4o\",\n  \"max_tokens\": 2000,\n  \"messages\": [{\n    \"role\": \"user\",\n    \"content\": $json.prompt\n  }]\n} }}",
+        "options": {}
+      },
+      "id": "0606a413-d49c-4491-96ea-5bb50acfb60d",
+      "name": "GPT4_API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -432,
+        400
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ndw6cfMYFLSb7oOe",
+          "name": "Header Auth account"
+        }
+      },
+      "notes": "Credentials:\nHeader: Authorization\nValue: Bearer sk-proj-xxx..."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key={{ $credentials.gemini_key }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "oAuth2",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  \"contents\": [{\n    \"parts\": [{\n      \"text\": $json.prompt\n    }]\n  }],\n  \"generationConfig\": {\n    \"temperature\": 0.7,\n    \"maxOutputTokens\": 2000\n  }\n} }}",
+        "options": {}
+      },
+      "id": "4cfea13f-7652-4a93-8e9a-0382b6a80ead",
+      "name": "Gemini_API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -432,
+        256
+      ],
+      "notes": "URL에 API Key 직접 입력:\nhttps://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=YOUR_API_KEY"
+    },
+    {
+      "parameters": {
+        "jsCode": "// AI 응답 파싱\nconst item = $input.first().json;\nlet aiResponse = '';\nlet modelUsed = '';\n\n// Claude 응답\nif (item.content && Array.isArray(item.content)) {\n  aiResponse = item.content[0].text;\n  modelUsed = 'Claude Sonnet 4';\n}\n// OpenAI 응답\nelse if (item.choices && Array.isArray(item.choices)) {\n  aiResponse = item.choices[0].message.content;\n  modelUsed = 'GPT-4o';\n}\n// Gemini 응답\nelse if (item.candidates && Array.isArray(item.candidates)) {\n  aiResponse = item.candidates[0].content.parts[0].text;\n  modelUsed = 'Gemini 2.0 Flash';\n}\nelse {\n  aiResponse = 'AI 응답 파싱 실패';\n  modelUsed = 'Error';\n}\n\nconst promptData = $('AI_프롬프트_준비').item.json;\n\nreturn [{\n  json: {\n    raw_insights: aiResponse,\n    ai_model_used: modelUsed,\n    stats: promptData.stats,\n    industry: promptData.industry,\n    top_news: promptData.top_news,\n    generated_at: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "36123f6f-4a5d-4537-8fcf-af900997515a",
+      "name": "인사이트_파싱",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -176,
+        400
+      ],
+      "notes": "AI 응답 파싱"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 보고서 생성 (Markdown)\nconst insights = $input.first().json;\nconst userConfig = $('사용자입력_파싱').item.json;\n\nconst reportMarkdown = `# ${insights.industry} 트렌드 모니터링 보고서\n\n**생성일시**: ${new Date().toLocaleString('ko-KR')}\n**분석 기간**: 최근 7일\n**AI 모델**: ${insights.ai_model_used}\n**분석자**: n8n 자동 시스템\n\n---\n\n## 📊 데이터 요약\n\n- **총 수집 건수**: ${insights.stats.total_count}건\n- **긴급 알림**: ${insights.stats.urgent_count}건\n- **높은 중요도**: ${insights.stats.high_importance}건\n\n### 감정 분석\n- 😊 긍정: ${insights.stats.positive_count}건 (${Math.round(insights.stats.positive_count/insights.stats.total_count*100)}%)\n- 😔 부정: ${insights.stats.negative_count}건 (${Math.round(insights.stats.negative_count/insights.stats.total_count*100)}%)\n- 😐 중립: ${insights.stats.neutral_count}건 (${Math.round(insights.stats.neutral_count/insights.stats.total_count*100)}%)\n\n---\n\n## 🤖 AI 인사이트 분석\n\n${insights.raw_insights}\n\n---\n\n## 📰 주요 뉴스 TOP 10\n\n${insights.top_news}\n\n---\n\n*본 보고서는 AI 기반 자동 분석 시스템으로 생성되었습니다.*\n`;\n\nreturn [{\n  json: {\n    report_content: reportMarkdown,\n    report_title: `${insights.industry}_트렌드리포트_${new Date().toISOString().split('T')[0]}`,\n    insights: insights,\n    user_config: userConfig\n  }\n}];"
+      },
+      "id": "98b1c6c7-ee76-47bb-93fe-f2ea08c8c61a",
+      "name": "보고서_생성",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        400
+      ],
+      "notes": "Markdown 보고서"
+    },
+    {
+      "parameters": {
+        "mode": "expression",
+        "numberOutputs": 3,
+        "output": "={{ $json.user_config.delivery_method }}"
+      },
+      "id": "012e7222-d808-4458-bca3-061441bdb716",
+      "name": "발송방법_선택",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        192,
+        384
+      ],
+      "notes": "kakao/email/both"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kapi.kakao.com/v2/api/talk/memo/default/send",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "template_object",
+              "value": "={{ JSON.stringify({\n  object_type: 'feed',\n  content: {\n    title: '🤖 AI 트렌드 분석 완료',\n    description: `${$json.insights.industry} 데이터 수집 완료\\n\\n📊 총 ${$json.insights.stats.total_count}건 (긴급 ${$json.insights.stats.urgent_count}건)\\n😊 긍정 ${Math.round($json.insights.stats.positive_count/$json.insights.stats.total_count*100)}% | 😔 부정 ${Math.round($json.insights.stats.negative_count/$json.insights.stats.total_count*100)}%\\n\\n🤖 분석: ${$json.insights.ai_model_used}`,\n    image_url: 'https://cdn-icons-png.flaticon.com/512/2920/2920277.png',\n    link: {\n      web_url: 'https://lookerstudio.google.com/대시보드링크',\n      mobile_web_url: 'https://lookerstudio.google.com/대시보드링크'\n    }\n  },\n  buttons: [\n    {\n      title: '📈 대시보드 보기',\n      link: {\n        web_url: 'https://lookerstudio.google.com/대시보드링크',\n        mobile_web_url: 'https://lookerstudio.google.com/대시보드링크'\n      }\n    }\n  ]\n}) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "9076b8cb-1aad-4b53-b60b-f8a1103a4a8d",
+      "name": "카카오톡_발송",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        400,
+        320
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ndw6cfMYFLSb7oOe",
+          "name": "Header Auth account"
+        }
+      },
+      "notes": "Credentials:\nHeader: Authorization\nValue: Bearer YOUR_ACCESS_TOKEN"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.user_config.email || 'user@example.com' }}",
+        "subject": "=🤖 {{ $json.insights.industry }} 트렌드 분석 보고서",
+        "message": "=<!DOCTYPE html>\n<html>\n<head>\n  <style>\n    body { font-family: 'Noto Sans KR', sans-serif; }\n    .header { background: #4285f4; color: white; padding: 20px; }\n    .insight { background: #f8f9fa; padding: 15px; margin: 10px 0; border-left: 4px solid #4285f4; white-space: pre-wrap; }\n    .stats { display: flex; gap: 20px; flex-wrap: wrap; }\n    .stat-card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex: 1; min-width: 150px; }\n    .stat-value { font-size: 32px; font-weight: bold; color: #4285f4; }\n  </style>\n</head>\n<body>\n  <div class=\"header\">\n    <h1>🤖 {{ $json.insights.industry }} 트렌드 분석 보고서</h1>\n    <p>{{ $now.toFormat('yyyy-MM-dd HH:mm') }} 생성 | AI 모델: {{ $json.insights.ai_model_used }}</p>\n  </div>\n  \n  <div style=\"padding: 20px;\">\n    <h2>📊 데이터 요약</h2>\n    <div class=\"stats\">\n      <div class=\"stat-card\">\n        <div>총 건수</div>\n        <div class=\"stat-value\">{{ $json.insights.stats.total_count }}</div>\n      </div>\n      <div class=\"stat-card\">\n        <div>🔴 긴급</div>\n        <div class=\"stat-value\">{{ $json.insights.stats.urgent_count }}</div>\n      </div>\n      <div class=\"stat-card\">\n        <div>😊 긍정</div>\n        <div class=\"stat-value\">{{ $json.insights.stats.positive_count }}</div>\n      </div>\n      <div class=\"stat-card\">\n        <div>😔 부정</div>\n        <div class=\"stat-value\">{{ $json.insights.stats.negative_count }}</div>\n      </div>\n    </div>\n    \n    <h2>💡 AI 인사이트</h2>\n    <div class=\"insight\">{{ $json.insights.raw_insights }}</div>\n    \n    <a href=\"https://lookerstudio.google.com/대시보드링크\" style=\"display: inline-block; background: #4285f4; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0;\">\n      📈 실시간 대시보드 보기\n    </a>\n  </div>\n</body>\n</html>",
+        "options": {}
+      },
+      "id": "f44a0375-6194-4d24-a840-e432d4b3fce6",
+      "name": "Gmail_발송",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        400,
+        480
+      ],
+      "webhookId": "75f28985-0030-43b9-82d5-b8910220012a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "bFKiXUBlTxMQk24Y",
+          "name": "Gmail account"
+        }
+      },
+      "notes": "Gmail OAuth2 연결 필요"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {\n  success: true,\n  message: '트렌드 모니터링이 시작되었습니다',\n  industry: $('동적_프리셋_생성').item.json.industry,\n  execution_id: $('사용자입력_파싱').item.json.execution_id,\n  ai_model: $('사용자입력_파싱').item.json.ai_model,\n  estimated_time: '약 2-3분 소요',\n  notification: '완료 시 알림이 전송됩니다'\n} }}",
+        "options": {}
+      },
+      "id": "a8ae93c5-c47b-426c-a59d-e6b47d551da7",
+      "name": "Webhook_응답",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        624,
+        400
+      ],
+      "notes": "폰으로 즉시 응답"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "폰에서_실행_Webhook": {
+      "main": [
+        [
+          {
+            "node": "사용자입력_파싱",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "사용자입력_파싱": {
+      "main": [
+        [
+          {
+            "node": "동적_프리셋_생성",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "동적_프리셋_생성": {
+      "main": [
+        [
+          {
+            "node": "RSS수집_1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS수집_2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS수집_3",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "NewsAPI_수집",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS수집_1": {
+      "main": [
+        [
+          {
+            "node": "소스_태깅",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS수집_2": {
+      "main": [
+        [
+          {
+            "node": "소스_태깅",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "소스_태깅": {
+      "main": [
+        [
+          {
+            "node": "중복_제거",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "중복_제거": {
+      "main": [
+        [
+          {
+            "node": "키워드_필터링",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "키워드_필터링": {
+      "main": [
+        [
+          {
+            "node": "감정_분석",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "감정_분석": {
+      "main": [
+        [
+          {
+            "node": "중요도_판단",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "중요도_판단": {
+      "main": [
+        [
+          {
+            "node": "Sheets용_구조화",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sheets용_구조화": {
+      "main": [
+        [
+          {
+            "node": "Google_Sheets_저장",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google_Sheets_저장": {
+      "main": [
+        [
+          {
+            "node": "요약통계_생성",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "요약통계_생성": {
+      "main": [
+        [
+          {
+            "node": "AI_프롬프트_준비",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI_프롬프트_준비": {
+      "main": [
+        [
+          {
+            "node": "AI모델_분기",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI모델_분기": {
+      "main": [
+        [
+          {
+            "node": "Gemini_API",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "GPT4_API",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Claude_API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude_API": {
+      "main": [
+        [
+          {
+            "node": "인사이트_파싱",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GPT4_API": {
+      "main": [
+        [
+          {
+            "node": "인사이트_파싱",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "인사이트_파싱": {
+      "main": [
+        [
+          {
+            "node": "보고서_생성",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "보고서_생성": {
+      "main": [
+        [
+          {
+            "node": "발송방법_선택",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "발송방법_선택": {
+      "main": [
+        [
+          {
+            "node": "카카오톡_발송",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Gmail_발송",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "카카오톡_발송",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Gmail_발송",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "카카오톡_발송": {
+      "main": [
+        [
+          {
+            "node": "Webhook_응답",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail_발송": {
+      "main": [
+        [
+          {
+            "node": "Webhook_응답",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini_API": {
+      "main": [
+        [
+          {
+            "node": "인사이트_파싱",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS수집_3": {
+      "main": [
+        [
+          {
+            "node": "소스_태깅",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NewsAPI_수집": {
+      "main": [
+        [
+          {
+            "node": "소스_태깅",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "dac19db3-6566-438c-b2ee-3da305697766",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4aae468442c323b9d7aeb70601530b18fe7dbbd836a0eb2623b1cb66bb4f0b2a"
+  },
+  "id": "QtdFoQfTB3HJKAZ5",
+  "tags": []
+}

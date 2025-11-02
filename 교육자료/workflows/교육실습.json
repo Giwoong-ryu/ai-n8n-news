@@ -1,0 +1,213 @@
+{
+  "name": "교육실습",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "https://www.aitimes.com/rss/allArticle.xml",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        176,
+        0
+      ],
+      "id": "702f0d92-d4f5-4609-98a5-4d2b8af2d746",
+      "name": "뉴스 검색 (rss)1"
+    },
+    {
+      "parameters": {
+        "maxItems": 10
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        352,
+        0
+      ],
+      "id": "9c2442c3-8175-47af-bacf-32144206904c",
+      "name": "갯수 제한 (Limit)1"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 10
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "b9f6af29-5db1-419e-8066-78ee33a34384",
+      "name": "원하는 시간에 작업 실행 (Schedule Trigger2)1"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-pro",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-pro"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "={{ $json.exampleUser }}"
+            },
+            {
+              "content": "={{ $json.exampleModel }}",
+              "role": "model"
+            },
+            {
+              "content": "={{ $json.actualPrompt }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        688,
+        0
+      ],
+      "id": "7914e84d-7f4b-46e9-ad66-68d5c49a634f",
+      "name": "Message a model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "4KJ94DMy5veI8rqT",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst today = new Date().toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' });\n\n// 100자 미만 필터링\nconst validItems = items.filter(item => {\n  const content = item.json.content || '';\n  return content.length > 100;\n});\n\nif (validItems.length === 0) {\n  return [{ \n    json: { \n      exampleUser: \"뉴스를 요약해주세요\",\n      exampleModel: \"유효한 뉴스가 없습니다.\",\n      actualPrompt: \"오늘은 요약할 뉴스가 없습니다.\"\n    } \n  }];\n}\n\n// Few-shot 예제\nconst exampleUser = \"다음 10개 AI 뉴스 중에서 가장 중요한 3개를 선택하여 요약해주세요:\\n\\n[뉴스 1] 테슬라 자율주행 업데이트\\n내용: 테슬라가 FSD 12.0을 출시했다...\\n\\n[뉴스 2] OpenAI GPT-5 출시\\n내용: OpenAI가 새로운 GPT-5 모델을 공개...\\n\\n[뉴스 3] 애플 워치 신제품 할인 이벤트\\n내용: 애플 워치 시리즈 9 할인...\\n\\n[뉴스 4] 구글 Gemini 2.0 발표\\n내용: 구글이 차세대 AI 모델 Gemini 2.0을 발표...\\n\\n[뉴스 5] 삼성 갤럭시 이벤트\\n내용: 삼성 갤럭시 예약 판매...\";\n\nconst exampleModel = \"오늘의 AI 뉴스 (2025. 10. 29.)\\n\\n [뉴스 1] OpenAI GPT-5 출시\\n\\nOpenAI가 새로운 GPT-5 모델을 공개했습니다. 이전 버전보다 추론 능력이 크게 향상되었으며, 멀티모달 성능이 개선되었습니다. 기업용 API도 함께 출시되어 다양한 산업에 활용될 전망입니다.\\n\\n자세히 보기: [링크]\\n\\n[뉴스 2] 구글 Gemini 2.0 발표\\n\\n구글이 차세대 AI 모델 Gemini 2.0을 발표했습니다. 실시간 처리 속도가 3배 향상되었고, 코드 생성 정확도가 크게 개선되었습니다. 개발자 베타 버전이 이번 주부터 제공됩니다.\\n\\n자세히 보기: [링크]\\n\\n[뉴스 3] 테슬라 자율주행 업데이트\\n\\n테슬라가 FSD 12.0을 출시했습니다. 딥러닝 기반 의사결정 시스템이 적용되어 안전성이 향상되었습니다. 북미 지역부터 순차적으로 업데이트가 배포됩니다.\\n\\n자세히 보기: [링크]\";\n\n// 실제 프롬프트\nlet actualPrompt = \"오늘의 AI 뉴스 (\" + today + \")\\n\\n\";\nactualPrompt += \"다음 \" + validItems.length + \"개의 AI 뉴스 중에서 가장 중요한 3개를 선택하여 요약해주세요.\\n\\n\";\nactualPrompt += \"선택 기준:\\n\";\nactualPrompt += \"• 기술적 중요도: 새로운 기술, 혁신적 발전\\n\";\nactualPrompt += \"• 산업 영향력: 실제 비즈니스/사회에 미치는 영향\\n\";\nactualPrompt += \"• 정보의 구체성: 구체적 데이터, 사실, 수치 포함\\n\";\nactualPrompt += \"• 광고/홍보성 뉴스는 제외\\n\\n\";\nactualPrompt += \"⚠️ 중요: 선정된 3개 뉴스는 반드시 [뉴스 1], [뉴스 2], [뉴스 3]으로 순서대로 번호를 매겨주세요.\\n\\n\";\nactualPrompt += \"위 예제와 같은 형식으로 선정된 3개 뉴스만 요약해주세요.\\n\\n\";\nactualPrompt += \"뉴스 목록:\\n\\n\";\n\nvalidItems.forEach((item, i) => {\n  let cleanTitle = item.json.title.replace(/\\[.*?\\d+일.*?\\]/g, '').trim();\n  \n  actualPrompt += \"[뉴스 \" + (i+1) + \"] \" + cleanTitle + \"\\n\";\n  actualPrompt += \"링크: \" + item.json.link + \"\\n\";\n  actualPrompt += \"내용: \" + item.json.content.substring(0, 400) + \"...\\n\\n\";\n});\n\nreturn [{ \n  json: { \n    exampleUser: exampleUser,\n    exampleModel: exampleModel,\n    actualPrompt: actualPrompt\n  } \n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        528,
+        0
+      ],
+      "id": "7d17304a-fc06-4055-ba51-bcaad85bd5f6",
+      "name": "품질좋은 3개 뉴스 선정(Code in JavaScript)"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://kapi.kakao.com/v2/api/talk/memo/default/send",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "oAuth2Api",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "template_object",
+              "value": "={{ JSON.stringify({\n  object_type: \"text\",\n  text: $json.content.parts[0].text,\n  link: {\n    web_url: \"https://www.aitimes.com\",\n    mobile_web_url: \"https://www.aitimes.com\"\n  },\n  button_title: \"추천 도구\"\n}) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        992,
+        0
+      ],
+      "id": "7ef11acb-028c-4cd0-bbce-dbe98234e51d",
+      "name": "카톡 전송(나에게-통합전송) (HTTP Request)1",
+      "credentials": {
+        "oAuth2Api": {
+          "id": "exZLwlHhH5vMa2Yo",
+          "name": "Unnamed credential"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "뉴스 검색 (rss)1": {
+      "main": [
+        [
+          {
+            "node": "갯수 제한 (Limit)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "갯수 제한 (Limit)1": {
+      "main": [
+        [
+          {
+            "node": "품질좋은 3개 뉴스 선정(Code in JavaScript)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "원하는 시간에 작업 실행 (Schedule Trigger2)1": {
+      "main": [
+        [
+          {
+            "node": "뉴스 검색 (rss)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model2": {
+      "main": [
+        [
+          {
+            "node": "카톡 전송(나에게-통합전송) (HTTP Request)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "품질좋은 3개 뉴스 선정(Code in JavaScript)": {
+      "main": [
+        [
+          {
+            "node": "Message a model2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f83a69c2-e574-4444-896c-39c65d8564c7",
+  "meta": {
+    "instanceId": "4aae468442c323b9d7aeb70601530b18fe7dbbd836a0eb2623b1cb66bb4f0b2a"
+  },
+  "id": "M7hYWMxpQiTMoW37",
+  "tags": []
+}

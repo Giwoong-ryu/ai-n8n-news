@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Eazypick 문서정리 프로그램 — 설계 설명서</title>
+<style>
+  :root{
+    --brand:#2E7D6E; --brand-hover:#276F62; --bg:#F6F7F9; --surface:#FFFFFF;
+    --text:#1F2937; --muted:#6B7280; --border:#E6E7EB; --code:#0B1021;
+    --green-soft: rgba(46,125,110,.08);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family: "Noto Sans KR", system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple SD Gothic Neo","Malgun Gothic","맑은 고딕",sans-serif; line-height:1.6}
+  .wrap{max-width:1100px;margin:32px auto;padding:0 20px}
+  header{display:flex;gap:16px;align-items:center;margin-bottom:24px}
+  .logo{width:44px;height:44px;border-radius:12px;background:var(--brand);display:grid;place-items:center;color:#fff;font-weight:700}
+  h1{font-size:26px;margin:0}
+  .subtitle{color:var(--muted);margin-top:4px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;margin:14px 0; box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  h2{font-size:20px;margin:0 0 12px 0}
+  h3{font-size:16px;margin:18px 0 8px 0}
+  .pill{display:inline-block;padding:6px 10px;border-radius:999px;background:var(--green-soft);color:var(--brand);font-weight:600;border:1px solid var(--border)}
+  .kvs{display:grid;grid-template-columns:1fr 2fr;gap:8px;margin:8px 0}
+  .kvs div{padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:#fff}
+  code, pre{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}
+  pre{background:#0b10210b;border:1px solid var(--border);padding:14px;border-radius:12px;overflow:auto}
+  .tree{white-space:pre}
+  .badge{font-size:12px;padding:3px 8px;border-radius:999px;border:1px solid var(--border);color:var(--muted)}
+  details{border:1px solid var(--border); border-radius:12px; padding:12px 14px; background:#fff}
+  summary{cursor:pointer;font-weight:700;color:var(--brand)}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .callout{border-left:4px solid var(--brand); padding:10px 12px;background:var(--green-soft);border-radius:8px}
+  .btn{display:inline-block;padding:10px 14px;border-radius:10px;background:var(--brand);color:#fff;text-decoration:none;border:1px solid var(--brand-hover)}
+  .btn:hover{background:var(--brand-hover)}
+  .list-clean{margin:0;padding-left:18px}
+  .kv{display:flex;gap:10px;align-items:center}
+  .kv b{width:190px}
+  footer{color:var(--muted);font-size:12px;margin:28px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">EP</div>
+    <div>
+      <h1>Eazypick 문서정리 프로그램 — 설계 설명서</h1>
+      <div class="subtitle">Windows 11 + VSCode 기준 | Python + Tkinter(CustomTkinter) | 단일 실행 파일 배포</div>
+    </div>
+  </header>
+
+  <div class="card">
+    <span class="pill">개요</span>
+    <p>폴더/파일을 스캔해 규칙에 맞게 정리하고, 정리 전 미리보기·되돌리기를 제공하는 데스크톱 앱이다. 핵심은 <b>예측 가능한 파일 이동</b>, <b>가역적 기록</b>, <b>간단한 UI</b>다.</p>
+    <div class="kvs">
+      <div><b>입력</b><br>사용자가 선택한 루트 폴더</div>
+      <div><b>출력</b><br>규칙에 따른 폴더 구조로 이동/이름정리 + 백업/로그 + 실행 이력</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>프로젝트 트리</h2>
+    <pre class="tree">Eazypick/
+├─ app/
+│  ├─ main.py                     # 진입점. UI 실행
+│  └─ hooks/                      # 실행 훅(시작/종료, 예외 로그)
+├─ ui/
+│  ├─ ui_dashboard_v2.py          # 전체 GUI, 단계별 정리·미리보기
+│  ├─ keyword_manager.py          # 키워드→폴더 규칙 편집 창
+│  ├─ widgets/                    # 공용 위젯(카드, 모달, 토스트)
+│  ├─ assets/
+│  │  ├─ icons/                   # PNG 아이콘
+│  │  └─ fonts/                   # 폰트
+│  └─ styles/
+│     └─ tokens.json              # 색상/간격 토큰(#2E7D6E 등)
+├─ core/
+│  ├─ file_organizer.py           # 정리 엔진(스마트/날짜/버전)
+│  ├─ smart_features.py           # 패턴 감지·이름정리 유틸
+│  ├─ action_tracker.py           # 배치 기록·되돌리기(백업 포함)
+│  ├─ rules/
+│  │  ├─ keyword_rules.json       # 키워드 규칙 저장
+│  │  └─ version_patterns.yaml    # 버전/중복 패턴 정의
+│  └─ utils/
+│     ├─ fs.py                    # 파일·폴더 공통 IO
+│     ├─ dates.py                 # 날짜 파싱/포맷
+│     └─ imaging.py               # 썸네일 등(선택)
+├─ data/
+│  ├─ backups/                    # 삭제/이동 백업 저장소
+│  ├─ logs/                       # tracker.log, app.log
+│  ├─ cache/                      # 임시 스캔 결과
+│  └─ config/
+│     ├─ dashboard_config.json    # 최근폴더 등 UI 설정
+│     └─ auto_organize_config.json# 엔진 기본 설정
+├─ scripts/
+│  ├─ build_windows.bat           # PyInstaller 빌드(아이콘 포함)
+│  ├─ sign_windows.bat            # 코드서명(옵션)
+│  └─ dev_run.bat                 # 개발용 실행
+├─ tests/
+│  ├─ test_patterns.py            # 패턴/그룹핑 단위테스트
+│  ├─ test_undo.py                # 되돌리기 시나리오
+│  └─ test_rules.py               # 키워드 규칙 적용
+├─ dist/                          # 빌드 산출물(.exe)
+├─ docs/
+│  ├─ ARCHITECTURE.md             # 텍스트 문서 버전
+│  ├─ USER_GUIDE.md               # 사용 가이드
+│  └─ CHANGELOG.md                # 버전 이력
+├─ .env.example                   # 경로·로그 레벨 샘플
+├─ requirements.txt               # 의존성 목록
+└─ pyproject.toml                 # 패키징/빌드 설정</pre>
+  </div>
+
+  <div class="card">
+    <h2>아키텍처 요약</h2>
+    <div class="grid-2">
+      <div>
+        <h3>UI 계층</h3>
+        <ul class="list-clean">
+          <li><b>ui_dashboard_v2.py</b>: 폴더 선택, 스캔, 미리보기, 실행, 되돌리기.</li>
+          <li><b>keyword_manager.py</b>: <code>keyword_rules.json</code> CRUD.</li>
+          <li><b>widgets/</b>: 공통 토스트, 진행률, 카드.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>도메인 계층</h3>
+        <ul class="list-clean">
+          <li><b>file_organizer.py</b>: 규칙 적용·이동 계획 생성·실행.</li>
+          <li><b>smart_features.py</b>: 버전/중복/날짜 패턴 감지.</li>
+          <li><b>action_tracker.py</b>: MOVE/RENAME/DELETE 기록, 백업, UNDO.</li>
+          <li><b>utils/</b>: 파일 IO, 날짜 처리, 이미지 보조.</li>
+        </ul>
+      </div>
+    </div>
+    <details style="margin-top:10px">
+      <summary>데이터 흐름(상세)</summary>
+      <ol>
+        <li>사용자: 루트 폴더 선택 → <code>ui_dashboard_v2</code>.</li>
+        <li><code>file_organizer.scan()</code>가 목록 수집 → <code>smart_features</code>가 패턴 분석.</li>
+        <li>미리보기에 이동 계획(소스→타겟, 이유, 규칙ID) 표시.</li>
+        <li>실행 시 <code>action_tracker.begin()</code> → 작업 단위로 기록하며 실제 이동.</li>
+        <li>오류 발생 시 해당 항목만 롤백. 전체 취소는 UNDO에서 처리.</li>
+        <li>종료 시 최근 폴더, 토큰, 창 상태는 <code>dashboard_config.json</code>에 저장.</li>
+      </ol>
+    </details>
+  </div>
+
+  <div class="card">
+    <h2>핵심 규칙과 설정</h2>
+    <div class="kv"><b>키워드 규칙</b> <span class="badge">core/rules/keyword_rules.json</span></div>
+    <pre>{
+  "design": "자료/디자인/",
+  "invoice": "회계/청구서/",
+  "발표|슬라이드": "자료/발표/",
+  "사진|이미지": "미디어/이미지/"
+}</pre>
+    <div class="kv"><b>버전 패턴</b> <span class="badge">core/rules/version_patterns.yaml</span></div>
+    <pre>versions:
+  - "(?i)[ _-]v(?:er)?\\d+(?:\\.\\d+)?"
+  - "(?i)final|최종|완성"
+dedupe:
+  - "\\(\\d+\\)$"
+  - " - 복사본$"</pre>
+    <div class="kv"><b>UI 토큰</b> <span class="badge">ui/styles/tokens.json</span></div>
+    <pre>{
+  "brand":"#2E7D6E",
+  "brandHover":"#276F62",
+  "bg":"#F6F7F9",
+  "surface":"#FFFFFF",
+  "border":"#E6E7EB",
+  "radius":{"lg":16,"md":12,"sm":8}
+}</pre>
+  </div>
+
+  <div class="card">
+    <h2>오류 대응 전략</h2>
+    <div class="callout">
+      실패 시 점검 순서: 환경변수(.env) → 권한(읽기/쓰기) → 잠김 파일 여부 → 경로 길이(Windows MAX_PATH) → 패턴 충돌 → 로그 확인(<code>data/logs</code>).
+    </div>
+    <ul>
+      <li><b>원자적 이동</b>: 항목별 try/except, 실패 시 부분 롤백.</li>
+      <li><b>백업 우선</b>: 삭제/덮어쓰기 전 백업에 스냅샷 저장.</li>
+      <li><b>UNDO</b>: <code>action_tracker.undo(batch_id)</code>로 직전 배치 복구.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>로그·관측성</h2>
+    <ul>
+      <li><code>data/logs/app.log</code>: UI·예외·성능 타임라인.</li>
+      <li><code>data/logs/tracker.log</code>: 파일 단위 작업 기록(JSON Lines).</li>
+      <li>중요 필드: <code>ts, op(MOVE/RENAME/DELETE), src, dst, rule_id, batch_id, status</code></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>빌드와 배포(Windows 11 + VSCode)</h2>
+    <ol>
+      <li>VSCode 터미널 열기: <b>Terminal → New Terminal</b>.</li>
+      <li>개발 실행: <code>scripts\dev_run.bat</code></li>
+      <li>빌드: <code>scripts\build_windows.bat</code> → 산출물은 <code>dist\</code></li>
+      <li>코드 서명(선택): <code>scripts\sign_windows.bat</code></li>
+      <li>배포 패키지: 실행 파일 + <code>data/config</code> 기본값 포함.</li>
+    </ol>
+    <details>
+      <summary>PyInstaller 예시 스니펫</summary>
+      <pre>pyinstaller ^
+  --noconfirm --onefile --windowed ^
+  --name "Eazypick" ^
+  --icon "ui\\assets\\icons\\app.ico" ^
+  --add-data "ui\\assets;ui\\assets" ^
+  app\\main.py</pre>
+    </details>
+  </div>
+
+  <div class="card">
+    <h2>테스트 전략</h2>
+    <ul>
+      <li><b>패턴</b>: 확장자·버전·중복 케이스 30종 합성.</li>
+      <li><b>UNDO</b>: MOVE→RENAME→DELETE 혼합 시나리오 복구 검증.</li>
+      <li><b>규칙</b>: <code>keyword_rules.json</code> 변경 시 리그레션 체크.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>로드맵</h2>
+    <ul>
+      <li>최근 폴더 고정 저장(앱 재시작 후 유지) 강화.</li>
+      <li>정리 전 충돌 시뮬레이터(이름 충돌/권한) 사전 표시.</li>
+      <li>배치 취소/재시도 큐, 로그 뷰어 내장.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>빠른 시작</h2>
+    <ol>
+      <li><b>폴더 선택</b> → <b>스캔</b> → <b>미리보기</b> 확인.</li>
+      <li>규칙 필요 시 <b>키워드 규칙 편집</b>에서 추가/수정.</li>
+      <li><b>정리 실행</b> → 문제 있으면 <b>되돌리기</b>.</li>
+    </ol>
+    <a class="btn" href="#" onclick="window.scrollTo({top:0,behavior:'smooth'})">맨 위로</a>
+  </div>
+
+  <footer>© 2025 Eazypick. 이 문서는 내부 설계 안내용이다.</footer>
+</div>
+</body>
+</html>
