@@ -1,0 +1,31 @@
+﻿timestamp,date,industry,source,title,url,keywords,sentiment,importance,is_urgent
+2025-01-31T10:30:00Z,2025-01-31,AI스타트업,TechCrunch,OpenAI announces GPT-5 with revolutionary multimodal capabilities,https://techcrunch.com/2025/01/31/openai-gpt5,"AI,GPT,투자",긍정,높음,TRUE
+2025-01-31T09:15:00Z,2025-01-31,AI스타트업,Platum,국내 AI 스타트업 Series B 투자 유치 현황 분석,https://platum.kr/archives/215789,"AI,스타트업,투자",긍정,보통,FALSE
+2025-01-31T08:45:00Z,2025-01-31,AI스타트업,NewsAPI,Claude 3.5 성능 벤치마크 결과 공개,https://example.com/news/claude-benchmark,"Claude,AI",중립,보통,FALSE
+2025-01-30T16:20:00Z,2025-01-30,AI스타트업,VentureBeat,Anthropic raises $500M in Series C funding round,https://venturebeat.com/ai/anthropic-funding,"AI,Claude,투자",긍정,높음,TRUE
+2025-01-30T15:10:00Z,2025-01-30,AI스타트업,TechCrunch,AI 스타트업 규제 강화 논란,https://techcrunch.com/2025/01/30/ai-regulation,AI,부정,보통,FALSE
+2025-01-30T14:30:00Z,2025-01-30,AI스타트업,Platum,생성형 AI 시장 2025년 전망,https://platum.kr/archives/215790,"AI,GPT",중립,보통,FALSE
+2025-01-30T11:50:00Z,2025-01-30,AI스타트업,NewsAPI,Microsoft invests heavily in AI infrastructure,https://example.com/news/microsoft-ai,"AI,투자",긍정,높음,TRUE
+2025-01-29T17:00:00Z,2025-01-29,AI스타트업,TechCrunch,ChatGPT usage statistics reveal explosive growth,https://techcrunch.com/2025/01/29/chatgpt-stats,"AI,GPT",긍정,보통,FALSE
+2025-01-29T13:25:00Z,2025-01-29,AI스타트업,VentureBeat,AI 윤리 가이드라인 업계 표준 발표,https://venturebeat.com/ai/ethics-guidelines,AI,중립,낮음,FALSE
+2025-01-29T10:15:00Z,2025-01-29,AI스타트업,Platum,네이버 AI 연구소 신규 모델 공개,https://platum.kr/archives/215791,AI,중립,보통,FALSE
+2025-01-28T16:40:00Z,2025-01-28,AI스타트업,NewsAPI,Google Gemini Pro 성능 업데이트,https://example.com/news/gemini-update,"AI,GPT",긍정,보통,FALSE
+2025-01-28T14:20:00Z,2025-01-28,AI스타트업,TechCrunch,AI 반도체 수요 폭증으로 NVIDIA 주가 급등,https://techcrunch.com/2025/01/28/nvidia-surge,"AI,투자",긍정,높음,TRUE
+2025-01-28T11:30:00Z,2025-01-28,AI스타트업,VentureBeat,OpenAI와 Microsoft 파트너십 강화,https://venturebeat.com/ai/openai-microsoft,"AI,GPT,투자",긍정,높음,TRUE
+2025-01-27T15:50:00Z,2025-01-27,AI스타트업,Platum,국내 AI 스타트업 M&A 동향,https://platum.kr/archives/215792,"AI,스타트업",중립,보통,FALSE
+2025-01-27T12:10:00Z,2025-01-27,AI스타트업,NewsAPI,Meta releases Llama 3 with improved reasoning,https://example.com/news/llama3,AI,긍정,보통,FALSE
+2025-01-27T09:30:00Z,2025-01-27,AI스타트업,TechCrunch,AI 스타트업 채용 시장 분석,https://techcrunch.com/2025/01/27/ai-jobs,"AI,스타트업",중립,낮음,FALSE
+2025-01-26T16:15:00Z,2025-01-26,AI스타트업,VentureBeat,Anthropic announces Claude for Enterprise,https://venturebeat.com/ai/claude-enterprise,"Claude,AI",긍정,높음,TRUE
+2025-01-26T13:40:00Z,2025-01-26,AI스타트업,Platum,AI 보안 취약점 우려 제기,https://platum.kr/archives/215793,AI,부정,보통,FALSE
+2025-01-26T10:20:00Z,2025-01-26,AI스타트업,NewsAPI,GPT-4 Turbo 가격 인하 발표,https://example.com/news/gpt4-price,"AI,GPT",긍정,보통,FALSE
+2025-01-25T15:30:00Z,2025-01-25,AI스타트업,TechCrunch,Y Combinator AI 스타트업 데모데이 성황,https://techcrunch.com/2025/01/25/yc-demo-day,"AI,스타트업,투자",긍정,높음,TRUE
+2025-01-25T11:45:00Z,2025-01-25,AI스타트업,VentureBeat,AI 생산성 도구 시장 경쟁 심화,https://venturebeat.com/ai/productivity-tools,AI,중립,보통,FALSE
+2025-01-25T09:10:00Z,2025-01-25,AI스타트업,Platum,카카오 AI 자회사 신규 서비스 출시,https://platum.kr/archives/215794,AI,긍정,보통,FALSE
+2025-01-24T16:50:00Z,2025-01-24,AI스타트업,NewsAPI,Amazon launches new AI code assistant,https://example.com/news/amazon-ai-code,AI,긍정,보통,FALSE
+2025-01-24T13:25:00Z,2025-01-24,AI스타트업,TechCrunch,AI 스타트업 실패 사례 분석,https://techcrunch.com/2025/01/24/ai-failures,"AI,스타트업",부정,낮음,FALSE
+2025-01-24T10:35:00Z,2025-01-24,AI스타트업,VentureBeat,Cohere raises $270M in latest funding round,https://venturebeat.com/ai/cohere-funding,"AI,투자",긍정,높음,TRUE
+2025-01-23T15:15:00Z,2025-01-23,AI스타트업,Platum,AI 반도체 국산화 프로젝트 착수,https://platum.kr/archives/215795,AI,중립,보통,FALSE
+2025-01-23T12:40:00Z,2025-01-23,AI스타트업,NewsAPI,Google AI researchers publish breakthrough paper,https://example.com/news/google-research,AI,긍정,보통,FALSE
+2025-01-23T09:20:00Z,2025-01-23,AI스타트업,TechCrunch,AI 챗봇 시장 점유율 현황,https://techcrunch.com/2025/01/23/chatbot-market,"AI,GPT,Claude",중립,보통,FALSE
+2025-01-22T16:30:00Z,2025-01-22,AI스타트업,VentureBeat,Stability AI faces financial difficulties,https://venturebeat.com/ai/stability-crisis,AI,부정,높음,TRUE
+2025-01-22T13:15:00Z,2025-01-22,AI스타트업,Platum,네이버 하이퍼클로바X 업데이트,https://platum.kr/archives/215796,AI,긍정,보통,FALSE
