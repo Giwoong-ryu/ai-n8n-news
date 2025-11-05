@@ -445,14 +445,30 @@
 
         <!-- 1. JSON 파일 Import -->
         <div class="section">
-            <h2><span class="section-number">1</span> n8n에 워크플로우 불러오기</h2>
-            
-            <div class="step-box">
-                <span class="step-number">1</span>
-                <strong>JSON 파일 다운로드</strong><br>
-                강사가 공유한 <code>트렌드모니터_완전판_v2.0.json</code> 파일 다운로드
-            </div>
-            
+    <h2>1. 워크플로우 파일 다운로드 및 n8n 불러오기</h2>
+    <p>AI 트렌드 모니터링 워크플로우를 아래 GitHub 링크에서 다운로드하고 n8n에 불러옵니다.</p>
+    
+    <div style="background: #f0f8ff; padding: 15px; border: 1px solid #cce5ff; border-radius: 6px; margin: 15px 0;">
+        <strong>① 워크플로우 파일 다운로드 (트렌드모니터_완전판_v2.0.json)</strong>
+        <ol>
+            <li>아래 버튼을 클릭하여 GitHub 저장소로 이동합니다.</li>
+            <li>저장소에서 <code>트렌드모니터_완전판_v2.0.json</code> 파일을 찾습니다.</li>
+            <li>**중요:** 해당 파일이 다운로드하는 폴더 이름이 **"교육자료"**와 **"n8n 교육 2차"**가 맞는지 확인합니다.</li>
+            <li>
+                <a href="https://github.com/Giwoong-ryu/ai-n8n-news/tree/main/%EA%B5%90%EC%9C%A5%EC%9E%90%EB%A3%8C/n8n%20%EA%B5%90%EC%9C%A5%202%EC%B0%A8" target="_blank" style="display: inline-block; padding: 8px 15px; background-color: #0366d6; color: white; text-decoration: none; border-radius: 4px; margin-top: 10px;">
+                    GitHub 파일 저장소 바로가기
+                </a>
+            </li>
+        </ol>
+    </div>
+    
+    <p><strong>② n8n에 워크플로우 불러오기:</strong></p>
+    <ol>
+        <li>n8n 워크스페이스(대시보드)로 이동합니다.</li>
+        <li>우측 상단의 **'Import from File'** 버튼을 클릭하거나, 키보드에서 <code>Ctrl + I</code> (Mac: <code>Cmd + I</code>)를 누릅니다.</li>
+        <li>다운로드한 <code>트렌드모니터_완전판_v2.0.json</code> 파일을 선택하여 워크플로우를 불러옵니다.</li>
+    </ol>
+</div>
             <div class="step-box">
                 <span class="step-number">2</span>
                 <strong>n8n 워크플로우 메뉴 열기</strong><br>
@@ -728,100 +744,93 @@ mobile_web_url: '<strong style="color:#ffc107;">복사한_대시보드_URL_붙�
                 💡 이 URL이 "실행 버튼"의 역할을 합니다. 이 URL을 누르면 워크플로우가 시작됩니다!
             </div>
             
-            <h3>🎯 2단계: 설정 파라미터 이해하기</h3>
-            
-            <p>워크플로우 실행 시 <strong>4가지 설정</strong>을 URL 뒤에 붙여서 전달합니다:</p>
-            
-            <table>
-                <thead>
-                    <tr>
-                        <th>설정</th>
-                        <th>설명</th>
-                        <th>가능한 값</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><strong>industry_name</strong></td>
-                        <td>어떤 분야를 모니터링할지</td>
-                        <td>AI스타트업, 패션뷰티, 핀테크 등 자유 입력</td>
-                    </tr>
-                    <tr>
-                        <td><strong>keywords</strong></td>
-                        <td>어떤 키워드를 추적할지<br>(쉼표로 구분)</td>
-                        <td>AI,GPT,Claude 또는<br>명품,샤넬,구찌 등</td>
-                    </tr>
-                    <tr>
-                        <td><strong>ai_model</strong></td>
-                        <td>어떤 AI로 분석할지</td>
-                        <td><strong>gemini</strong> (무료, 추천)<br>claude (유료)<br>gpt4 (유료)</td>
-                    </tr>
-                    <tr>
-                        <td><strong>delivery</strong></td>
-                        <td>결과를 어떻게 받을지</td>
-                        <td><strong>kakao</strong> (카톡만)<br>email (이메일만)<br>both (둘 다)</td>
-                    </tr>
-                </tbody>
-            </table>
-            
-            <h4>🔑 키워드에 따른 자동 RSS 매칭</h4>
-            
-            <p>입력한 키워드를 분석해서 <strong>자동으로 적합한 뉴스 소스</strong>를 선택합니다!</p>
-            
-            <table>
-                <thead>
-                    <tr>
-                        <th>이런 키워드를 입력하면</th>
-                        <th>자동으로 선택되는 뉴스</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>AI, GPT, 스타트업, 테크</td>
-                        <td>TechCrunch, Platum, VentureBeat</td>
-                    </tr>
-                    <tr>
-                        <td>패션, 뷰티, 명품, 샤넬</td>
-                        <td>패션인사이트, 어패럴뉴스, 뷰티누리</td>
-                    </tr>
-                    <tr>
-                        <td>코인, 블록체인, 비트코인</td>
-                        <td>CoinDesk, Cointelegraph</td>
-                    </tr>
-                    <tr>
-                        <td>금융, 핀테크, 토스, 페이</td>
-                        <td>한국금융신문, 디지털투데이</td>
-                    </tr>
-                    <tr>
-                        <td>제조, 반도체, 배터리</td>
-                        <td>산업일보, 전자신문</td>
-                    </tr>
-                </tbody>
-            </table>
-            
-            <h3>🔨 3단계: URL 만들기</h3>
-            
-            <p>Webhook URL 뒤에 설정을 붙입니다:</p>
-            
-            <div class="code-block">기본 URL<strong style="color:#ffc107;">?industry_name=AI스타트업&keywords=AI,GPT,투자&ai_model=gemini&delivery=kakao</strong></div>
-            
-            <p><strong>규칙:</strong></p>
-            <ul>
-                <li>첫 번째 설정 앞에는 <code>?</code> 사용</li>
-                <li>두 번째부터는 <code>&</code>로 연결</li>
-                <li>띄어쓰기 없이 입력</li>
-            </ul>
-            
-            <div class="phone-example">
-                <h4>📋 완성된 URL 예시</h4>
-                
-                <strong>예시 1: AI 스타트업 모니터링</strong>
-                <div class="code-block" style="font-size: 0.8em;">https://your-domain.com/webhook/start-monitoring?industry_name=AI스타트업&keywords=AI,GPT,Claude,투자&ai_model=gemini&delivery=kakao</div>
-                
-                <strong>예시 2: 패션 트렌드 분석</strong>
-                <div class="code-block" style="font-size: 0.8em;">https://your-domain.com/webhook/start-monitoring?industry_name=패션뷰티&keywords=명품,샤넬,루이비통&ai_model=gemini&delivery=both</div>
-            </div>
-            
+<h3>🎯 2단계: Webhook 호출 시트 값 입력 (A1, B1 등)</h3>
+        <p>Webhook URL을 일일이 만들 필요 없이, 아래 표를 참고하여 **Google Sheets 또는 Excel에 값만 입력**하면 클릭 가능한 링크가 자동으로 생성됩니다. <strong>(이미 시트를 만드셨다면 입력 값만 확인하세요.)</strong></p>
+
+        <div class="code-block" style="background: #e6f7ff; border-left: 5px solid #1890ff; padding: 15px; margin: 15px 0; overflow-x: auto;">
+            <p style="font-weight: bold; margin-bottom: 5px; color: #333;">✅ 시트 공식 예시 (F1셀에 이처럼 입력):</p>
+            <code style="color: #000080; font-weight: bold;">=HYPERLINK(A1 & "?" & "industry_name=" & ENCODEURL(B1) & "&keywords=" & ENCODEURL(C1) & "&ai_model=" & ENCODEURL(D1) & "&delivery=" & ENCODEURL(E1), "AI 보고서 실행 (클릭)")</code>
+        </div>
+        
+        <h4>🔑 스프레드시트 입력 셀 역할 상세</h4>
+        <p>시트에 입력할 각 셀의 역할과 예시 값입니다.</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>셀 위치</th>
+                    <th>설정</th>
+                    <th>설명</th>
+                    <th>예시 값</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>A1</strong></td>
+                    <td><strong>Base URL</strong></td>
+                    <td>n8n Webhook의 기본 주소 (변경 금지)</td>
+                    <td><code>https://n8nryugw10.site/webhook/start-monitoring</code></td>
+                </tr>
+                <tr>
+                    <td><strong>B1</strong></td>
+                    <td><strong>industry_name</strong></td>
+                    <td>모니터링할 분야의 이름</td>
+                    <td><code>AI스타트업</code>, <code>패션 트렌드 분석</code> 등</td>
+                </tr>
+                <tr>
+                    <td><strong>C1</strong></td>
+                    <td><strong>keywords</strong></td>
+                    <td>뉴스 수집 키워드 (쉼표로 구분)</td>
+                    <td><code>Gemini,Claude</code> 또는 <code>명품,샤넬</code></td>
+                </tr>
+                <tr>
+                    <td><strong>D1</strong></td>
+                    <td><strong>ai_model</strong></td>
+                    <td>사용할 AI 모델</td>
+                    <td><code>gemini</code> (고정 권장)</td>
+                </tr>
+                <tr>
+                    <td><strong>E1</strong></td>
+                    <td><strong>delivery</strong></td>
+                    <td>결과 수신 채널</td>
+                    <td><code>kakao</code>, <code>email</code>, <code>both</code></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h4>💡 키워드에 따른 자동 RSS 매칭</h4>
+        <p>입력한 키워드를 분석해서 <strong>자동으로 적합한 뉴스 소스</strong>를 선택합니다!</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>이런 키워드를 입력하면</th>
+                    <th>자동으로 선택되는 뉴스</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>AI, GPT, 스타트업, 테크</td>
+                    <td>TechCrunch, Platum, VentureBeat</td>
+                </tr>
+                <tr>
+                    <td>패션, 뷰티, 명품, 샤넬</td>
+                    <td>패션인사이트, 어패럴뉴스, 뷰티누리</td>
+                </tr>
+                <tr>
+                    <td>코인, 블록체인, 비트코인</td>
+                    <td>CoinDesk, Cointelegraph</td>
+                </tr>
+                <tr>
+                    <td>금융, 핀테크, 토스, 페이</td>
+                    <td>한국금융신문, 디지털투데이</td>
+                </tr>
+                <tr>
+                    <td>제조, 반도체, 배터리</td>
+                    <td>산업일보, 전자신문</td>
+                </tr>
+            </tbody>
+        </table>
             <h3>📱 4단계: Google Sheets에 버튼 만들기</h3>
             
             <div class="two-column">
